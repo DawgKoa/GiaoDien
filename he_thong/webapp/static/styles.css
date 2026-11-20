@@ -1,0 +1,439 @@
+/* ==============================================================================
+   EDUGUARD. PORTAL-STD THEME STYLES — VIBRANT SOFT PINK / ROSE EDITION
+   Slightly deeper, richer pink canvas gradient, crystal glass Bento cards,
+   uncluttered progress bars with external scale labels, and tactile pill controls.
+   ============================================================================== */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Bảng màu Hồng Rõ & Đậm Hơn (Vibrant Rose Blush) */
+  --bg-gradient-start: #fff0f3;
+  --bg-gradient-mid: #fcd5de;
+  --bg-gradient-end: #f7afc0;
+  
+  --color-charcoal: #1c1e1a;
+  --color-charcoal-light: #2d302a;
+  --color-text-main: #1f2022;
+  --color-text-muted: #665b60;
+  --color-text-subtle: #8e8085;
+
+  /* Rose & Blush Accents (Đậm đà, sắc nét) */
+  --color-rose-dark: #a61e4d;
+  --color-rose: #d6336c;
+  --color-rose-bright: #e64980;
+  --color-rose-soft: #fcc2d7;
+  --color-rose-pale: #fff0f6;
+
+  /* Organic Risk Palettes */
+  --risk-high-text: #b83834;
+  --risk-high-bg: #fde8e7;
+  --risk-high-border: #f8c8c6;
+
+  --risk-med-text: #b5831f;
+  --risk-med-bg: #fef4dc;
+  --risk-med-border: #f9e2ab;
+
+  --risk-low-text: #2b7a3e;
+  --risk-low-bg: #eaf6ec;
+  --risk-low-border: #c8ebd0;
+
+  --law-l1-text: #6b46c1;
+  --law-l1-bg: #f3e8ff;
+  --law-l1-border: #e9d5ff;
+
+  /* Bento Card Glassmorphism */
+  --card-bg: rgba(255, 255, 255, 0.90);
+  --card-border: rgba(255, 255, 255, 1);
+  --card-shadow: 0 6px 24px -2px rgba(180, 50, 80, 0.08), 0 2px 6px -1px rgba(180, 50, 80, 0.04);
+  --card-shadow-hover: 0 16px 36px -4px rgba(180, 50, 80, 0.13), 0 4px 12px -2px rgba(180, 50, 80, 0.06);
+  
+  --radius-bento: 24px;
+  --radius-pill: 9999px;
+
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Base Setup */
+html, body {
+  font-family: var(--font-sans);
+  color: var(--color-text-main);
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 42%, var(--bg-gradient-end) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Bento Card Style */
+.bento-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-bento);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth), border-color 0.2s ease;
+}
+
+.bento-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: rgba(255, 255, 255, 1);
+}
+
+/* Nav Pill Style */
+.nav-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: all 0.22s var(--ease-smooth);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  user-select: none;
+}
+
+.nav-pill-btn:hover {
+  color: var(--color-charcoal);
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-pill-btn.active {
+  background-color: #ffffff !important;
+  color: var(--color-rose-dark) !important;
+  box-shadow: 0 3px 10px rgba(166, 30, 77, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Primary Dark Pill Button */
+.btn-pill-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--color-charcoal);
+  color: #ffffff;
+  border-radius: var(--radius-pill);
+  padding: 9px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--color-charcoal);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+  box-shadow: 0 2px 6px rgba(28, 30, 26, 0.18);
+}
+
+.btn-pill-dark:hover {
+  background-color: var(--color-charcoal-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(28, 30, 26, 0.25);
+}
+
+.btn-pill-dark:active {
+  transform: scale(0.98);
+}
+
+/* Rose Light Pill Button */
+.btn-pill-rose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--color-rose-soft);
+  color: var(--color-rose-dark);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(214, 51, 108, 0.35);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+}
+
+.btn-pill-rose:hover {
+  background-color: #f7a8c4;
+  transform: translateY(-1px);
+}
+
+.btn-pill-rose:active {
+  transform: scale(0.98);
+}
+
+/* White Pill Button */
+.btn-pill-white {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #ffffff;
+  color: var(--color-charcoal);
+  border-radius: var(--radius-pill);
+  padding: 7px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(240, 210, 218, 0.9);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.btn-pill-white:hover {
+  background-color: #fff9fa;
+  border-color: #e2adb9;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(180, 50, 80, 0.08);
+}
+
+/* Floating Metric Counter */
+.floating-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-charcoal);
+}
+
+/* Risk Badges */
+.badge-risk-high {
+  background-color: var(--risk-high-bg);
+  color: var(--risk-high-text);
+  border: 1px solid var(--risk-high-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-risk-med {
+  background-color: var(--risk-med-bg);
+  color: var(--risk-med-text);
+  border: 1px solid var(--risk-med-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-risk-low {
+  background-color: var(--risk-low-bg);
+  color: var(--risk-low-text);
+  border: 1px solid var(--risk-low-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-law-l1 {
+  background-color: var(--law-l1-bg);
+  color: var(--law-l1-text);
+  border: 1px solid var(--law-l1-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Progress Capsule Track - Clean & Uncluttered */
+.capsule-bar-track {
+  background-color: rgba(240, 215, 222, 0.75);
+  border-radius: var(--radius-pill);
+  height: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.capsule-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.7s var(--ease-spring);
+}
+
+/* Table Compact Capsule Bar */
+.capsule-bar-container {
+  background-color: rgba(240, 218, 224, 0.65);
+  border-radius: var(--radius-pill);
+  height: 22px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.capsule-bar-container .capsule-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius-pill);
+  transition: width 0.7s var(--ease-spring);
+  z-index: 1;
+}
+
+.capsule-bar-container .capsule-bar-label {
+  position: relative;
+  z-index: 2;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Custom Table Styling */
+.portal-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.portal-table th {
+  padding: 12px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid rgba(242, 215, 222, 0.85);
+  background: rgba(254, 248, 249, 0.8);
+}
+
+.portal-table td {
+  padding: 12px 14px;
+  font-size: 0.86rem;
+  border-bottom: 1px solid rgba(245, 225, 230, 0.75);
+  color: var(--color-text-main);
+  vertical-align: middle;
+}
+
+.portal-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.portal-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.portal-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(214, 51, 108, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(214, 51, 108, 0.6);
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+  animation: fadeUp 0.35s var(--ease-smooth) forwards;
+}
+
+/* Slide-over Drawer Backdrop & Panel */
+#drawerBackdrop {
+  transition: opacity 0.3s ease;
+}
+
+#drawerPanel {
+  transition: transform 0.35s var(--ease-smooth);
+}
+
+/* Toast Notification (Black Pill) */
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast-pill {
+  pointer-events: auto;
+  background-color: var(--color-charcoal);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.35);
+  animation: fadeUp 0.25s var(--ease-spring) forwards;
+}
+
+/* Input Fields Clean */
+.portal-input {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(235, 208, 215, 0.95);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  color: var(--color-text-main);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.portal-input:focus {
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px rgba(214, 51, 108, 0.2);
+}
+
+/* Sliders */
+input[type="range"] {
+  accent-color: var(--color-rose);
+}

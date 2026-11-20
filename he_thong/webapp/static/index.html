@@ -1,0 +1,1138 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HỆ THỐNG CẢNH BÁO SỚM NGUY CƠ RỚT MÔN (CS301_ML)</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            charcoal: {
+              DEFAULT: '#1c1e1a',
+              light: '#2d302a',
+            },
+            rose: {
+              DEFAULT: '#d6336c',
+              dark: '#a61e4d',
+              bright: '#e64980',
+              soft: '#fcc2d7',
+              pale: '#fff0f6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet (Vibrant Rose Blush Theme) -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="min-h-screen text-[#1f2022]">
+
+  <!-- ==============================================================================
+       TOP NAVIGATION BAR (Portal-std style: Floating Pill Bar, NO left sidebar)
+       ============================================================================== -->
+  <header class="sticky top-0 z-40 px-4 sm:px-8 py-3.5 backdrop-blur-md bg-white/75 border-b border-white/80 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Brand & Tag -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-[#1c1e1a] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            EG
+          </div>
+          <span class="text-xl font-extrabold tracking-tight text-[#1c1e1a]">EduGuard<span class="text-[#d6336c]">.</span></span>
+        </div>
+        <span class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#fcc2d7] text-[#a61e4d] border border-[#f7a8c4]">
+          HỆ THỐNG CS301_ML
+        </span>
+      </div>
+
+      <!-- Navigation Tabs (Center Pill Group) -->
+      <nav class="flex items-center p-1 bg-[#fcd5de]/85 rounded-full border border-white/90 shadow-inner overflow-x-auto max-w-full">
+        <button class="nav-pill-btn active" data-tab="ai" onclick="switchTab('ai')">
+          <i data-lucide="sparkles" class="w-4 h-4 text-[#d6336c]"></i>
+          <span>Trợ lý AI</span>
+        </button>
+        <button class="nav-pill-btn" data-tab="classroom" onclick="switchTab('classroom')">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>Lớp học</span>
+        </button>
+        <button class="nav-pill-btn" data-tab="advisor" onclick="switchTab('advisor')">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          <span>Cố vấn</span>
+        </button>
+        <button class="nav-pill-btn" data-tab="student" onclick="switchTab('student')">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          <span>Sinh viên</span>
+        </button>
+        <button class="nav-pill-btn" data-tab="evaluation" onclick="switchTab('evaluation')">
+          <i data-lucide="line-chart" class="w-4 h-4"></i>
+          <span>Đánh giá ML</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-2.5">
+        <!-- Hidden file input for uploading custom classroom CSV -->
+        <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCsvUpload(event)">
+        <button onclick="document.getElementById('csvFileInput').click()" class="btn-pill-white text-xs py-2 px-3.5 font-semibold" title="Nạp tệp CSV lớp học khác">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-[#d6336c]"></i>
+          <span class="hidden md:inline">Tải CSV</span>
+        </button>
+
+        <!-- Slide-over Drawer Settings Trigger -->
+        <button id="btnOpenDrawer" onclick="toggleDrawer(true)" class="btn-pill-white p-2 rounded-full hover:bg-white" title="Cấu hình mô hình & ngưỡng">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4 text-[#1c1e1a]"></i>
+        </button>
+
+        <!-- Current Class Chip -->
+        <span class="hidden lg:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#1c1e1a] text-white shadow-sm">
+          KHMT2411
+        </span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==============================================================================
+       MAIN WORKSPACE CONTAINER
+       ============================================================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-6">
+
+    <!-- HERO & FLOATING STATS ROW (Portal-std style) -->
+    <section class="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      
+      <!-- Left: Title & Subtitle (TÊN HỆ THỐNG VIẾT HOA THEO YÊU CẦU) -->
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-white text-xs font-semibold text-[#a61e4d] shadow-sm mb-1">
+          <span class="w-2 h-2 rounded-full bg-[#d6336c] animate-pulse"></span>
+          <span>Kiến trúc 2 tầng (Luật sư phạm + Máy học xác suất)</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1c1e1a] uppercase">
+          HỆ THỐNG CẢNH BÁO SỚM NGUY CƠ RỚT MÔN
+        </h1>
+        <p class="text-sm text-[#665b60] flex flex-wrap items-center gap-2">
+          <span>Mô hình hoạt động:</span>
+          <span id="heroModelBadge" class="font-bold text-[#1c1e1a] bg-white/80 px-2.5 py-0.5 rounded-full border border-white/90 shadow-sm text-xs">
+            Logistic Regression
+          </span>
+          <span>•</span>
+          <span id="heroCalibBadge" class="font-semibold text-[#a61e4d] bg-[#fcc2d7] px-2.5 py-0.5 rounded-full text-xs">
+            Platt Scaling
+          </span>
+          <span>•</span>
+          <span class="text-xs text-[#8e8085]">Hệ số tin cậy 95% Bootstrap</span>
+        </p>
+      </div>
+
+      <!-- Right: Floating Metric Counters (No boxed card frames) -->
+      <div class="flex items-center flex-wrap gap-6 sm:gap-8 bg-white/45 p-4 sm:px-6 sm:py-3.5 rounded-3xl border border-white/70 backdrop-blur-sm shadow-sm">
+        <div class="text-center">
+          <div class="text-xs font-bold text-[#665b60] uppercase tracking-wider mb-0.5">Tổng SV</div>
+          <div id="kpiTotal" class="floating-num">--</div>
+        </div>
+        <div class="h-8 w-px bg-[#e8ccd3]"></div>
+        <div class="text-center">
+          <div class="text-xs font-bold text-[#b83834] uppercase tracking-wider mb-0.5">Mức Cao</div>
+          <div id="kpiHigh" class="floating-num text-[#b83834]">--</div>
+        </div>
+        <div class="h-8 w-px bg-[#e8ccd3]"></div>
+        <div class="text-center">
+          <div class="text-xs font-bold text-[#b5831f] uppercase tracking-wider mb-0.5">Trung Bình</div>
+          <div id="kpiMed" class="floating-num text-[#b5831f]">--</div>
+        </div>
+        <div class="h-8 w-px bg-[#e8ccd3]"></div>
+        <div class="text-center">
+          <div class="text-xs font-bold text-[#2b7a3e] uppercase tracking-wider mb-0.5">Mức Thấp</div>
+          <div id="kpiLow" class="floating-num text-[#2b7a3e]">--</div>
+        </div>
+        <div class="h-8 w-px bg-[#e8ccd3]"></div>
+        <div class="text-center">
+          <div class="text-xs font-bold text-[#6b46c1] uppercase tracking-wider mb-0.5">Luật L1</div>
+          <div id="kpiL1" class="floating-num text-[#6b46c1]">--</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==============================================================================
+         TAB 1: TRỢ LÝ AI (AI Assistant & Instant Student Inference)
+         ============================================================================== -->
+    <div id="pane-ai" class="tab-pane active space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Cột Trái (5 cols): Kịch bản nhanh + Form nhập -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Bento Card 1: 4 Kịch bản kiểm tra nhanh (Tên sạch, không kèm nhãn trong ngoặc) -->
+          <div class="bento-card p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4 text-[#d6336c]"></i>
+                Kịch bản kiểm tra nhanh
+              </h2>
+              <span class="text-xs text-[#8e8085]">1-Click Run</span>
+            </div>
+            <div class="grid grid-cols-1 gap-2.5">
+              <button onclick="runScenario(1)" class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white/90 hover:bg-[#fff0f6] border border-white hover:border-[#d6336c] text-xs font-semibold text-[#1c1e1a] transition-all flex items-center justify-between shadow-sm">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#b83834] flex-shrink-0"></span>
+                  <span>
+                    <strong class="text-sm font-bold block text-[#1c1e1a]">Lê Minh Tuấn</strong>
+                    <span class="text-[11px] font-normal text-[#665b60]">Vắng 30% — Vượt ngưỡng cấm thi (L1)</span>
+                  </span>
+                </span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#8e8085]"></i>
+              </button>
+              <button onclick="runScenario(2)" class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white/90 hover:bg-[#fff0f6] border border-white hover:border-[#d6336c] text-xs font-semibold text-[#1c1e1a] transition-all flex items-center justify-between shadow-sm">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#b5831f] flex-shrink-0"></span>
+                  <span>
+                    <strong class="text-sm font-bold block text-[#1c1e1a]">Trần Bảo Ngọc</strong>
+                    <span class="text-[11px] font-normal text-[#665b60]">Vắng 18% — Kích hoạt Luật sàn S1</span>
+                  </span>
+                </span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#8e8085]"></i>
+              </button>
+              <button onclick="runScenario(3)" class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white/90 hover:bg-[#fff0f6] border border-white hover:border-[#d6336c] text-xs font-semibold text-[#1c1e1a] transition-all flex items-center justify-between shadow-sm">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#b5831f] flex-shrink-0"></span>
+                  <span>
+                    <strong class="text-sm font-bold block text-[#1c1e1a]">Nguyễn Hoàng Nam</strong>
+                    <span class="text-[11px] font-normal text-[#665b60]">Điểm QT1 4.0, tự học ít (&lt;2h/tuần)</span>
+                  </span>
+                </span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#8e8085]"></i>
+              </button>
+              <button onclick="runScenario(4)" class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white/90 hover:bg-[#fff0f6] border border-white hover:border-[#d6336c] text-xs font-semibold text-[#1c1e1a] transition-all flex items-center justify-between shadow-sm">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#2b7a3e] flex-shrink-0"></span>
+                  <span>
+                    <strong class="text-sm font-bold block text-[#1c1e1a]">Đặng Thị Phương Thảo</strong>
+                    <span class="text-[11px] font-normal text-[#665b60]">Điểm QT1 8.5, chuyên cần (Vắng 2%)</span>
+                  </span>
+                </span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#8e8085]"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bento Card 2: Form Nhập Sinh Viên Tùy Biến -->
+          <div class="bento-card p-6">
+            <h2 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2 mb-4">
+              <i data-lucide="user-plus" class="w-4 h-4 text-[#d6336c]"></i>
+              Nhập thông tin sinh viên
+            </h2>
+            <form id="formPredictSingle" onsubmit="handleSinglePredict(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-semibold text-[#665b60] mb-1">Họ và tên sinh viên</label>
+                <input type="text" id="predTen" placeholder="VD: Huỳnh Đăng Khoa" required class="portal-input">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-[#665b60] mb-1">Điểm QT1 (0–10)</label>
+                  <input type="number" id="predQt1" step="0.1" min="0" max="10" placeholder="VD: 5.5" required class="portal-input">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#665b60] mb-1">Tỷ lệ vắng mặt (%)</label>
+                  <input type="number" id="predVang" step="0.5" min="0" max="100" placeholder="VD: 10.0" required class="portal-input">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-[#665b60] mb-1">Số lần học lại môn</label>
+                  <input type="number" id="predHl" min="0" max="10" value="0" required class="portal-input">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#665b60] mb-1">Mức tự học ở nhà</label>
+                  <select id="predTh" class="portal-input">
+                    <option value="1">1: Dưới 2 giờ / tuần</option>
+                    <option value="2" selected>2: Từ 2 đến 5 giờ</option>
+                    <option value="3">3: Từ 5 đến 10 giờ</option>
+                    <option value="4">4: Trên 10 giờ / tuần</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <button type="submit" id="btnSubmitPredict" class="btn-pill-dark w-full py-2.5 text-sm">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-[#e64980]"></i>
+                  <span>Chạy phân tích AI ngay</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Cột Phải (7 cols): Luồng Hội thoại AI & Thẻ Kết quả Phân tích -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <div class="bento-card p-6 min-h-[560px] flex flex-col justify-between">
+            <!-- Header khung kết quả -->
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b border-[#f3dde3]">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-[#fcc2d7] text-[#a61e4d] flex items-center justify-center">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-[#1c1e1a]">Trợ lý Học vụ AI CS301</h2>
+                    <p class="text-xs text-[#8e8085]">Suy luận kết hợp 2 tầng thời gian thực</p>
+                  </div>
+                </div>
+                <button onclick="clearChatHistory()" class="btn-pill-white text-xs py-1.5 px-3" title="Làm mới cuộc trò chuyện và xóa kết quả">
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-[#8e8085]"></i>
+                  <span>Làm mới</span>
+                </button>
+              </div>
+
+              <!-- Chat Message Stream -->
+              <div id="chatStreamContainer" class="py-4 space-y-3.5 max-h-[280px] overflow-y-auto pr-1">
+                <div class="p-3.5 rounded-2xl bg-white/75 border border-white text-xs text-[#665b60] leading-relaxed">
+                  Xin chào Thầy/Cô và các bạn sinh viên! Tôi là <strong>Trợ lý AI CS301_ML</strong>. Hãy chọn một kịch bản kiểm tra nhanh bên trái hoặc điền thông tin sinh viên để nhận phân tích nguy cơ rớt môn theo thời gian thực.
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State Placeholder (Visible initially & after Reset) -->
+            <div id="aiEmptyState" class="py-12 px-6 text-center rounded-2xl bg-white/55 border border-white/85 my-auto">
+              <div class="w-12 h-12 rounded-full bg-[#fcc2d7] text-[#d6336c] mx-auto flex items-center justify-center mb-3 shadow-xs">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+              </div>
+              <div class="text-sm font-bold text-[#1c1e1a]">Chưa có kết quả phân tích học vụ</div>
+              <p class="text-xs text-[#8e8085] max-w-sm mx-auto mt-1 leading-relaxed">
+                Hãy chọn một kịch bản kiểm tra bên trái hoặc điền thông tin sinh viên rồi bấm <strong>"Chạy phân tích AI ngay"</strong> để nhận đánh giá chi tiết.
+              </p>
+            </div>
+
+            <!-- AI Result Card Dynamic Output (Hidden initially & after Reset) -->
+            <div id="aiResultCard" class="hidden mt-4 p-5 rounded-2xl bg-white/95 border border-white shadow-sm space-y-4">
+              <!-- Top Row: Student Name + Risk Badge -->
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <span class="text-xs font-semibold text-[#8e8085]">Kết quả phân tích học vụ cho:</span>
+                  <div id="resStudentName" class="text-base font-extrabold text-[#1c1e1a]">--</div>
+                </div>
+                <div id="resRiskBadgeContainer">
+                  <span class="badge-risk-med"><span class="w-1.5 h-1.5 rounded-full bg-[#b5831f]"></span> Mức Trung bình</span>
+                </div>
+              </div>
+
+              <!-- THANH XÁC SUẤT RỚT MÔN (THIẾT KẾ RÕ RÀNG, CHỮ 0% VÀ 100% ĐẶT RIÊNG BÊN DƯỚI KHÔNG BỊ ĐÈ CHỮ) -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-bold">
+                  <span class="text-[#665b60]">Xác suất rớt môn ước lượng (Posterior Probability)</span>
+                  <span id="resRiskProbLabel" class="font-mono text-sm font-extrabold text-[#1c1e1a]">--%</span>
+                </div>
+                <!-- Track thanh tiến trình sạch sẽ không nhét chữ bên trong -->
+                <div class="capsule-bar-track">
+                  <div id="resRiskProgressBar" class="capsule-bar-fill bg-[#b5831f]" style="width: 0%;"></div>
+                </div>
+                <!-- Hàng ghi chú thang đo bên ngoài, tách biệt hoàn toàn không bao giờ bị đè -->
+                <div class="flex items-center justify-between text-[11px] font-semibold text-[#8e8085] px-1 pt-0.5">
+                  <span class="flex items-center gap-1.5 text-[#2b7a3e]">
+                    <span class="w-2 h-2 rounded-full bg-[#2b7a3e]"></span> 0% (An toàn)
+                  </span>
+                  <span class="flex items-center gap-1.5 text-[#b83834]">
+                    100% (Nguy cơ) <span class="w-2 h-2 rounded-full bg-[#b83834]"></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 3 Pill Stats: Nguồn quyết định, Điểm QT1, Tỷ lệ vắng -->
+              <div class="grid grid-cols-3 gap-2.5 pt-1">
+                <div class="bg-[#fff0f6] p-2.5 rounded-xl text-center border border-[#f7ccd7]">
+                  <div class="text-[10px] font-semibold text-[#8e8085] uppercase">Nguồn ra quyết định</div>
+                  <div id="resNguon" class="text-xs font-bold text-[#1c1e1a] truncate mt-0.5">Mô hình Tầng 2</div>
+                </div>
+                <div class="bg-[#fff0f6] p-2.5 rounded-xl text-center border border-[#f7ccd7]">
+                  <div class="text-[10px] font-semibold text-[#8e8085] uppercase">Điểm QT1</div>
+                  <div id="resQt1" class="text-xs font-bold text-[#1c1e1a] font-mono mt-0.5">--</div>
+                </div>
+                <div class="bg-[#fff0f6] p-2.5 rounded-xl text-center border border-[#f7ccd7]">
+                  <div class="text-[10px] font-semibold text-[#8e8085] uppercase">Tỷ lệ vắng</div>
+                  <div id="resVang" class="text-xs font-bold text-[#1c1e1a] font-mono mt-0.5">--%</div>
+                </div>
+              </div>
+
+              <!-- Audio Read & Action Button -->
+              <div class="flex items-center justify-between pt-1">
+                <button id="btnSpeakAi" onclick="speakCurrentAnalysis()" class="btn-pill-rose text-xs py-2 px-3.5">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i>
+                  <span>Nghe AI đọc phân tích (vi-VN)</span>
+                </button>
+                <span id="speechStatus" class="text-[11px] text-[#8e8085]">Sẵn sàng phát âm thanh</span>
+              </div>
+
+              <!-- Pedagogical Note -->
+              <div id="resPedagogicalBox" class="p-3.5 rounded-xl bg-[#fdfaf3] border border-[#f9e9cf] text-xs text-[#9c6a1e] leading-relaxed">
+                <div class="font-bold mb-1 flex items-center gap-1.5" id="resPedagogicalTitle">
+                  <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                  <span>Ghi chú Sư phạm:</span>
+                </div>
+                <div id="resPedagogicalContent">
+                  ...
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==============================================================================
+         TAB 2: LỚP HỌC (Classroom Roster & Interactive Data Exploration)
+         ============================================================================== -->
+    <div id="pane-classroom" class="tab-pane space-y-6">
+      
+      <!-- Filter Bar Bento Card -->
+      <div class="bento-card p-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
+          
+          <!-- Search Input -->
+          <div class="lg:col-span-4 relative">
+            <i data-lucide="search" class="w-4 h-4 text-[#8e8085] absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="tblSearch" oninput="applyFilters()" placeholder="Tìm theo tên hoặc mã sinh viên..." class="portal-input pl-10 text-xs">
+          </div>
+
+          <!-- Risk Level Filter -->
+          <div class="lg:col-span-2">
+            <select id="tblFilterMuc" onchange="applyFilters()" class="portal-input text-xs font-semibold">
+              <option value="">Tất cả mức nguy cơ</option>
+              <option value="Cao">Mức Cao</option>
+              <option value="Trung bình">Mức Trung bình</option>
+              <option value="Thấp">Mức Thấp</option>
+            </select>
+          </div>
+
+          <!-- Cohort / Course Filter -->
+          <div class="lg:col-span-2">
+            <select id="tblFilterKhoa" onchange="applyFilters()" class="portal-input text-xs font-semibold">
+              <option value="">Tất cả khóa học</option>
+            </select>
+          </div>
+
+          <!-- Decision Source Filter -->
+          <div class="lg:col-span-2">
+            <select id="tblFilterNguon" onchange="applyFilters()" class="portal-input text-xs font-semibold">
+              <option value="">Tất cả nguồn quyết định</option>
+            </select>
+          </div>
+
+          <!-- Export CSV CTA -->
+          <div class="lg:col-span-2 flex justify-end">
+            <button onclick="triggerExportCsv()" class="btn-pill-dark w-full text-xs py-2 px-3.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Xuất danh sách (.CSV)</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Main Student Data Table Card -->
+      <div class="bento-card overflow-hidden">
+        <div class="p-5 border-b border-[#f3dde3] flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-[#1c1e1a]">Danh sách Sinh viên & Kết quả Đánh giá</h2>
+            <p class="text-xs text-[#8e8085]">Hiển thị <span id="tblCountFiltered" class="font-bold text-[#1c1e1a]">500</span> / <span id="tblCountTotal">500</span> sinh viên</p>
+          </div>
+          <span class="text-xs font-mono text-[#a61e4d] bg-[#fcc2d7] px-2.5 py-1 rounded-full border border-[#f7a8c4] font-bold">
+            CS301_DATASET
+          </span>
+        </div>
+
+        <div class="overflow-x-auto max-h-[520px]">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th>Mã SV</th>
+                <th>Họ và Tên</th>
+                <th>Khóa</th>
+                <th class="text-center">QT1</th>
+                <th class="text-center">Vắng (%)</th>
+                <th class="text-center">Học lại</th>
+                <th class="text-center">Tự học</th>
+                <th style="min-width: 170px;">Xác suất rớt</th>
+                <th>Mức nguy cơ</th>
+                <th>Nguồn quyết định</th>
+                <th class="text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="tblStudentBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom Row: 4 Bento Cards (Chart Distribution, Gauge, Monotonicity, Intervention Log) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Card 1 (4 cols): Learning Progress / Risk Distribution Bar Chart -->
+        <div class="lg:col-span-4 bento-card p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Tỷ lệ rớt theo 3 mức</h3>
+              <span class="text-[11px] text-[#8e8085]">Pill Bar Chart</span>
+            </div>
+            <div class="h-56 relative">
+              <canvas id="chartRiskDistribution"></canvas>
+            </div>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-2 pt-2 border-t border-[#f3dde3]">
+            Phân bố tỷ lệ rớt quan sát được tăng đơn điệu qua từng bậc nguy cơ.
+          </p>
+        </div>
+
+        <!-- Card 2 (4 cols): Semi-Doughnut Batch Progress Gauge -->
+        <div class="lg:col-span-4 bento-card p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Tỷ lệ An toàn & Cảnh báo</h3>
+              <span class="text-[11px] text-[#8e8085]">Batch Status</span>
+            </div>
+            <div class="h-56 relative flex items-center justify-center">
+              <canvas id="chartBatchProgressGauge"></canvas>
+              <div class="absolute text-center" style="top: 55%; transform: translateY(-50%);">
+                <div id="gaugeCenterPct" class="text-3xl font-extrabold text-[#1c1e1a]">--%</div>
+                <div class="text-[11px] font-semibold text-[#8e8085]">Sinh viên An toàn</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-around text-xs pt-2 border-t border-[#f3dde3]">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#2b7a3e]"></span> An toàn</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#b5831f]"></span> Trung bình</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#b83834]"></span> Nguy cơ cao</span>
+          </div>
+        </div>
+
+        <!-- Card 3 (4 cols): Monotonicity Check Table -->
+        <div class="lg:col-span-4 bento-card p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Kiểm tra Tính đơn điệu</h3>
+              <span class="badge-risk-low text-[10px]">Đạt chuẩn</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-[#f3dde3] text-[#8e8085] text-left">
+                    <th class="py-2">Mức</th>
+                    <th class="py-2 text-center">Số lượng</th>
+                    <th class="py-2 text-right">Tỷ lệ rớt thực tế</th>
+                  </tr>
+                </thead>
+                <tbody id="tblMonotonicityBody" class="divide-y divide-[#fcecf0]">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-3 pt-2 border-t border-[#f3dde3]">
+            Bảo đảm Mức Cao có xác suất rớt thực nghiệm cao hơn rõ rệt so với Mức Trung bình và Thấp.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Card: Ghi nhận nhật ký can thiệp (CN5) -->
+      <div class="bento-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="clipboard-edit" class="w-4 h-4 text-[#d6336c]"></i>
+            Ghi nhận nhật ký can thiệp sư phạm (CN5)
+          </h3>
+          <span class="text-xs text-[#8e8085]">Lưu trữ vào nhat_ky_can_thiep.csv</span>
+        </div>
+
+        <form id="formIntervention" onsubmit="handleRecordIntervention(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3.5 mb-6">
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Mã sinh viên</label>
+            <input type="text" id="intMaSv" required placeholder="VD: SV_K67_0020" class="portal-input text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Họ và tên</label>
+            <input type="text" id="intHoTen" required placeholder="VD: Nguyễn Văn A" class="portal-input text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Hành động can thiệp</label>
+            <select id="intHanhDong" class="portal-input text-xs font-semibold">
+              <option value="Gửi email cảnh báo nguy cơ rớt môn">Gửi email cảnh báo vắng/điểm</option>
+              <option value="Hẹn gặp tư vấn trực tiếp">Hẹn gặp tư vấn trực tiếp 1-1</option>
+              <option value="Giao bài tập bổ trợ & ôn tập">Giao bài tập bổ trợ & ôn tập</option>
+              <option value="Phân công bạn học kèm (Peer tutoring)">Phân công bạn học kèm (Peer tutoring)</option>
+              <option value="Thông báo đến Cố vấn học tập khoa">Thông báo đến Cố vấn học tập khoa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Ghi chú chi tiết</label>
+            <div class="flex gap-2">
+              <input type="text" id="intGhiChu" placeholder="Nội dung trao đổi..." class="portal-input text-xs">
+              <button type="submit" class="btn-pill-dark text-xs px-4 whitespace-nowrap">
+                <span>Lưu</span>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Lịch sử can thiệp gần đây -->
+        <div>
+          <h4 class="text-xs font-bold text-[#665b60] uppercase tracking-wider mb-2">Lịch sử can thiệp đã ghi nhận</h4>
+          <div class="overflow-x-auto max-h-48 border border-[#f3dde3] rounded-xl bg-white/75">
+            <table class="w-full text-xs">
+              <thead class="bg-[#fff0f6] text-[#8e8085] border-b border-[#f3dde3]">
+                <tr>
+                  <th class="py-2 px-3 text-left">Thời gian</th>
+                  <th class="py-2 px-3 text-left">Mã SV</th>
+                  <th class="py-2 px-3 text-left">Họ tên</th>
+                  <th class="py-2 px-3 text-left">Hành động</th>
+                  <th class="py-2 px-3 text-left">Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody id="tblInterventionsBody" class="divide-y divide-[#f3dde3]">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         TAB 3: CỐ VẤN HỌC TẬP (Advisor Dashboard for High-Risk Students)
+         ============================================================================== -->
+    <div id="pane-advisor" class="tab-pane space-y-6">
+      
+      <!-- 3 Bento Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div class="bento-card p-6 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-bold text-[#b83834] uppercase tracking-wider mb-1">Tổng Mức Cao Cần Can Thiệp</div>
+            <div id="advTotalHigh" class="floating-num text-[#b83834]">--</div>
+            <p class="text-xs text-[#8e8085] mt-1">Ưu tiên liên hệ trong tuần 5–7</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-[#fde8e7] text-[#b83834] flex items-center justify-center">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bento-card p-6 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-bold text-[#6b46c1] uppercase tracking-wider mb-1">Cấm Thi Theo Luật L1 (Vắng ≥ 20%)</div>
+            <div id="advLawL1" class="floating-num text-[#6b46c1]">--</div>
+            <p class="text-xs text-[#8e8085] mt-1">Xác suất rớt quy định: 100%</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-[#f3e8ff] text-[#6b46c1] flex items-center justify-center">
+            <i data-lucide="gavel" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bento-card p-6 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-bold text-[#b5831f] uppercase tracking-wider mb-1">Mô Hình ML Cảnh Báo (T2)</div>
+            <div id="advModelHigh" class="floating-num text-[#b5831f]">--</div>
+            <p class="text-xs text-[#8e8085] mt-1">Xác suất P ≥ 0.60 (Có thể cứu vớt)</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-[#fef4dc] text-[#b5831f] flex items-center justify-center">
+            <i data-lucide="cpu" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Priority Action Table Card -->
+      <div class="bento-card overflow-hidden">
+        <div class="p-5 border-b border-[#f3dde3] flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-[#1c1e1a]">Danh sách Ưu tiên Can thiệp Sư phạm</h2>
+            <p class="text-xs text-[#8e8085]">Danh sách tự động lọc các sinh viên thuộc nhóm nguy cơ cao nhất</p>
+          </div>
+          <span class="badge-risk-high text-xs">Khẩn cấp</span>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th>Mã SV</th>
+                <th>Họ và Tên</th>
+                <th>Khóa</th>
+                <th class="text-center">QT1</th>
+                <th class="text-center">Vắng (%)</th>
+                <th class="text-center">Học lại</th>
+                <th style="min-width: 170px;">Xác suất rớt</th>
+                <th>Nguồn cảnh báo</th>
+                <th class="text-right">Hành động đề xuất</th>
+              </tr>
+            </thead>
+            <tbody id="tblAdvisorBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         TAB 4: SINH VIÊN (Student Portal & Feedback Flow)
+         ============================================================================== -->
+    <div id="pane-student" class="tab-pane space-y-6">
+      
+      <!-- Card Đăng nhập Sinh viên (Portal-std style) -->
+      <div id="studentLoginBox" class="max-w-md mx-auto bento-card p-8 text-center my-6">
+        <div class="w-14 h-14 rounded-full bg-[#fcc2d7] text-[#a61e4d] mx-auto flex items-center justify-center mb-4">
+          <i data-lucide="shield-check" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-xl font-extrabold text-[#1c1e1a] tracking-tight mb-1">Cổng Tra cứu Sinh viên</h2>
+        <p class="text-xs text-[#8e8085] mb-6">Đăng nhập bằng MSSV để xem tình trạng cảnh báo học vụ của riêng bạn</p>
+
+        <form id="formStudentLogin" onsubmit="handleStudentLogin(event)" class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Mã số sinh viên (MSSV)</label>
+            <input type="text" id="loginStudentId" value="SV_K67_0020" required placeholder="VD: SV_K67_0020" class="portal-input font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#665b60] mb-1">Mã PIN xác thực (Demo: 123456)</label>
+            <input type="password" id="loginPin" value="123456" required class="portal-input font-mono">
+          </div>
+
+          <button type="submit" class="btn-pill-dark w-full py-2.5 text-sm mt-2">
+            <span>Đăng nhập tra cứu</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+
+        <!-- 4 Quick Sample Chips -->
+        <div class="mt-6 pt-5 border-t border-[#f3dde3] text-left">
+          <div class="text-[11px] font-bold text-[#8e8085] uppercase mb-2">Hoặc chọn nhanh tài khoản mẫu:</div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="fillStudentLogin('SV_K67_0020')" class="px-2.5 py-1 rounded-full bg-white border border-[#f7ccd7] hover:bg-[#fff0f6] text-[11px] font-mono text-[#a61e4d] font-semibold transition-all">SV_K67_0020 (Cao)</button>
+            <button onclick="fillStudentLogin('SV_K66_0142')" class="px-2.5 py-1 rounded-full bg-white border border-[#f7ccd7] hover:bg-[#fff0f6] text-[11px] font-mono text-[#b5831f] font-semibold transition-all">SV_K66_0142 (TB)</button>
+            <button onclick="fillStudentLogin('SV_K67_0305')" class="px-2.5 py-1 rounded-full bg-white border border-[#f7ccd7] hover:bg-[#fff0f6] text-[11px] font-mono text-[#2b7a3e] font-semibold transition-all">SV_K67_0305 (Thấp)</button>
+            <button onclick="fillStudentLogin('SV_K65_0488')" class="px-2.5 py-1 rounded-full bg-white border border-[#f7ccd7] hover:bg-[#fff0f6] text-[11px] font-mono text-[#6b46c1] font-semibold transition-all">SV_K65_0488 (L1)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Khung Hồ sơ Sinh viên Sau Đăng nhập (Hidden initially) -->
+      <div id="studentDashboardBox" class="hidden space-y-6">
+        
+        <!-- Header Profile Card -->
+        <div class="bento-card p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-center gap-5">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-[#d6336c] to-[#fcc2d7] p-1 flex-shrink-0 shadow-sm">
+              <div class="w-full h-full rounded-full bg-white flex items-center justify-center font-extrabold text-2xl text-[#a61e4d]" id="stuAvatarLetter">
+                K
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 id="stuProfileName" class="text-xl font-extrabold text-[#1c1e1a]">Huỳnh Đăng Khoa</h2>
+                <span id="stuProfileBadge" class="badge-risk-med">Mức Trung bình</span>
+              </div>
+              <p class="text-xs text-[#8e8085] font-mono mt-0.5" id="stuProfileMeta">MSSV: SV_K67_0020 • Khóa K67 • Lớp: CS301_KHMT</p>
+              
+              <div class="flex items-center gap-4 mt-3 text-xs">
+                <div><span class="text-[#8e8085]">Điểm QT1:</span> <strong id="stuProfileQt1" class="font-mono text-[#1c1e1a]">4.5</strong></div>
+                <div><span class="text-[#8e8085]">Vắng mặt:</span> <strong id="stuProfileVang" class="font-mono text-[#1c1e1a]">18.0%</strong></div>
+                <div><span class="text-[#8e8085]">Học lại:</span> <strong id="stuProfileHl" class="font-mono text-[#1c1e1a]">1 lần</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right flex flex-col items-end">
+            <button onclick="handleStudentLogout()" class="btn-pill-white text-xs py-1.5 px-3 mb-2">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>Đăng xuất</span>
+            </button>
+            <div class="text-[11px] text-[#8e8085]">Bảo mật hồ sơ cá nhân theo Điều 17 GDPR</div>
+          </div>
+        </div>
+
+        <!-- 2 Columns: Advice Card & CN8 Feedback Form -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Column 1 (6 cols): Khuyến nghị & Cảnh báo cá nhân -->
+          <div class="lg:col-span-6 bento-card p-6 space-y-4">
+            <h3 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="lightbulb" class="w-4 h-4 text-[#d6336c]"></i>
+              Cảnh báo & Kế hoạch học tập gợi ý
+            </h3>
+
+            <!-- Progress bar với chữ đặt riêng bên ngoài không bị đè -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-xs font-bold mb-1">
+                <span class="text-[#665b60]">Xác suất rớt ước lượng hiện tại</span>
+                <span id="stuProbDisplay" class="font-mono text-sm font-extrabold text-[#1c1e1a]">--%</span>
+              </div>
+              <div class="capsule-bar-track">
+                <div id="stuProgressBar" class="capsule-bar-fill bg-[#b5831f]" style="width: 0%;"></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] font-semibold text-[#8e8085] px-1 pt-0.5">
+                <span class="flex items-center gap-1.5 text-[#2b7a3e]">
+                  <span class="w-2 h-2 rounded-full bg-[#2b7a3e]"></span> An toàn
+                </span>
+                <span class="flex items-center gap-1.5 text-[#b83834]">
+                  Báo động <span class="w-2 h-2 rounded-full bg-[#b83834]"></span>
+                </span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-[#fff0f6] border border-[#f7ccd7] space-y-2 text-xs leading-relaxed">
+              <div class="font-bold text-[#1c1e1a] flex items-center gap-1.5">
+                <i data-lucide="help-circle" class="w-4 h-4 text-[#d6336c]"></i>
+                <span>Lý do phân loại:</span>
+              </div>
+              <p id="stuLyDo" class="text-[#665b60]">...</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-[#fcecf0] border border-[#f7ccd7] space-y-2 text-xs leading-relaxed">
+              <div class="font-bold text-[#a61e4d] flex items-center gap-1.5">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-[#a61e4d]"></i>
+                <span>Kế hoạch hành động dành cho bạn:</span>
+              </div>
+              <p id="stuKhuyenNghi" class="text-[#721535]">...</p>
+            </div>
+          </div>
+
+          <!-- Column 2 (6 cols): Phản hồi sai lệch dữ liệu học vụ (CN8) -->
+          <div class="lg:col-span-6 bento-card p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="message-square-plus" class="w-4 h-4 text-[#d6336c]"></i>
+                Phản ánh sai lệch dữ liệu học vụ (CN8)
+              </h3>
+              <span class="text-xs text-[#8e8085]">Quyền giải trình dữ liệu</span>
+            </div>
+            <p class="text-xs text-[#665b60] mb-4">
+              Nếu bạn phát hiện thông tin điểm danh hoặc điểm QT1 bị sai sót, hãy gửi phản ánh kèm minh chứng để Giảng viên và Phòng Đào tạo xác minh lại.
+            </p>
+
+            <form id="formFeedback" onsubmit="handleSubmitFeedback(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-semibold text-[#665b60] mb-1">Loại sai lệch cần xác minh</label>
+                <select id="fbLoai" class="portal-input text-xs font-semibold">
+                  <option value="Điểm danh vắng mặt (có phép)">Điểm danh vắng mặt (có đơn phép / giấy bác sĩ)</option>
+                  <option value="Điểm bài kiểm tra QT1 nhập nhầm">Điểm bài kiểm tra QT1 nhập nhầm</option>
+                  <option value="Số lần học lại môn không chính xác">Số lần học lại môn không chính xác</option>
+                  <option value="Khác">Lý do khác</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-[#665b60] mb-1">Nội dung minh chứng chi tiết</label>
+                <textarea id="fbNoiDung" rows="3" required placeholder="Mô tả cụ thể buổi học bị điểm danh nhầm hoặc link ảnh bài thi / đơn phép..." class="portal-input text-xs"></textarea>
+              </div>
+
+              <button type="submit" class="btn-pill-dark w-full py-2.5 text-xs">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Gửi phản ánh xác minh (Lưu vào phan_hoi_sai_lech.csv)</span>
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         TAB 5: ĐÁNH GIÁ MÔ HÌNH ML (Model Evaluation, ROC, Calibration & K-Means++)
+         ============================================================================== -->
+    <div id="pane-evaluation" class="tab-pane space-y-6">
+      
+      <!-- 4 Metric Cards with 95% Bootstrap CI -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="bento-card p-5">
+          <div class="text-[11px] font-bold text-[#8e8085] uppercase tracking-wider mb-1">AUC - ROC</div>
+          <div class="flex items-baseline gap-2">
+            <span id="evalAucVal" class="text-2xl font-extrabold text-[#1c1e1a]">--</span>
+            <span id="evalAucCi" class="text-[11px] font-semibold text-[#a61e4d] bg-[#fcc2d7] px-2 py-0.5 rounded-full font-mono">[--]</span>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-1">Khả năng phân biệt rớt / đậu</p>
+        </div>
+
+        <div class="bento-card p-5">
+          <div class="text-[11px] font-bold text-[#8e8085] uppercase tracking-wider mb-1">Brier Score</div>
+          <div class="flex items-baseline gap-2">
+            <span id="evalBrierVal" class="text-2xl font-extrabold text-[#1c1e1a]">--</span>
+            <span id="evalBrierCi" class="text-[11px] font-semibold text-[#a61e4d] bg-[#fcc2d7] px-2 py-0.5 rounded-full font-mono">[--]</span>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-1">Độ chính xác xác suất (Càng nhỏ càng tốt)</p>
+        </div>
+
+        <div class="bento-card p-5">
+          <div class="text-[11px] font-bold text-[#8e8085] uppercase tracking-wider mb-1">Recall (Mức Cao)</div>
+          <div class="flex items-baseline gap-2">
+            <span id="evalRecallVal" class="text-2xl font-extrabold text-[#b83834]">--</span>
+            <span id="evalRecallCi" class="text-[11px] font-semibold text-[#b83834] bg-[#fde8e7] px-2 py-0.5 rounded-full font-mono">[--]</span>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-1">Tỷ lệ phát hiện đúng SV thật sự rớt</p>
+        </div>
+
+        <div class="bento-card p-5">
+          <div class="text-[11px] font-bold text-[#8e8085] uppercase tracking-wider mb-1">Precision (Mức Cao)</div>
+          <div class="flex items-baseline gap-2">
+            <span id="evalPrecisionVal" class="text-2xl font-extrabold text-[#1c1e1a]">--</span>
+            <span id="evalPrecisionCi" class="text-[11px] font-semibold text-[#a61e4d] bg-[#fcc2d7] px-2 py-0.5 rounded-full font-mono">[--]</span>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-1">Độ tin cậy khi gắn nhãn Mức Cao</p>
+        </div>
+
+      </div>
+
+      <!-- Baselines Comparison Table Bento Card -->
+      <div class="bento-card p-5">
+        <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider mb-3">Đối chứng với các Mô hình Sàn (Baselines)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-[#f3dde3] text-[#8e8085] text-left">
+                <th class="py-2.5 px-3">Mô hình đối chứng</th>
+                <th class="py-2.5 px-3 text-center">AUC-ROC</th>
+                <th class="py-2.5 px-3 text-center">Brier Score</th>
+                <th class="py-2.5 px-3 text-center">Recall (Cao)</th>
+                <th class="py-2.5 px-3 text-center">Precision (Cao)</th>
+                <th class="py-2.5 px-3 text-left">Đánh giá sư phạm</th>
+              </tr>
+            </thead>
+            <tbody id="tblBaselinesBody" class="divide-y divide-[#fcecf0]">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2 Curve Charts: ROC Curve & Calibration Curve -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- ROC Curve with T1, T2 points -->
+        <div class="bento-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Đường cong ROC & Điểm cắt ngưỡng T1, T2</h3>
+            <span class="text-[11px] text-[#8e8085]">FPR vs TPR</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chartROC"></canvas>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-2">
+            Điểm màu đỏ là ngưỡng T2 (ưu tiên Recall), điểm màu vàng là ngưỡng T1 (sàng lọc sớm).
+          </p>
+        </div>
+
+        <!-- Calibration Curve -->
+        <div class="bento-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Đường cong Hiệu chỉnh (Calibration Curve)</h3>
+            <span class="text-[11px] text-[#8e8085]">Reliability Diagram</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chartCalibration"></canvas>
+          </div>
+          <p class="text-[11px] text-[#8e8085] mt-2">
+            Đường đứt đoạn chéo là hiệu chỉnh lý tưởng. Đường màu hồng/đỏ phản ánh xác suất thực tế sau hiệu chỉnh.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- K-Means++ Clustering Section -->
+      <div class="bento-card p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f3dde3]">
+          <div>
+            <h3 class="text-sm font-bold text-[#1c1e1a] uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="network" class="w-4 h-4 text-[#d6336c]"></i>
+              Phân cụm Hành vi Học tập Sinh viên (K-Means++)
+            </h3>
+            <p class="text-xs text-[#8e8085]">Phát hiện chân dung sinh viên để thiết kế can thiệp cá nhân hóa</p>
+          </div>
+          
+          <!-- K Slider -->
+          <div class="flex items-center gap-3">
+            <label class="text-xs font-semibold text-[#665b60] whitespace-nowrap">Số cụm K:</label>
+            <input type="range" id="kmeansKSlider" min="2" max="6" value="4" oninput="document.getElementById('kmeansKVal').textContent = this.value" onchange="fetchKMeansClusterData(this.value)" class="w-24">
+            <span id="kmeansKVal" class="w-6 text-center font-bold font-mono text-sm bg-white px-2 py-0.5 rounded border border-[#f3dde3]">4</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- K-Means Summary Table (7 cols) -->
+          <div class="lg:col-span-7 overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-[#f3dde3] text-[#8e8085] text-left">
+                  <th class="py-2">Cụm</th>
+                  <th class="py-2 text-center">Số SV</th>
+                  <th class="py-2 text-center">QT1 TB</th>
+                  <th class="py-2 text-center">Vắng TB (%)</th>
+                  <th class="py-2 text-center">Học lại TB</th>
+                  <th class="py-2 text-center">Tỷ lệ rớt</th>
+                  <th class="py-2 text-left">Đặc trưng nhận diện</th>
+                </tr>
+              </thead>
+              <tbody id="tblKMeansBody" class="divide-y divide-[#fcecf0]">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- K-Means Visual Chart (5 cols) -->
+          <div class="lg:col-span-5 h-64 relative">
+            <canvas id="chartKMeans"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==============================================================================
+       SLIDE-OVER DRAWER: SETTINGS & MODEL CONFIGURATION
+       ============================================================================== -->
+  <div id="settingsDrawer" class="fixed inset-0 z-50 pointer-events-none transition-all">
+    <!-- Backdrop overlay -->
+    <div id="drawerBackdrop" onclick="toggleDrawer(false)" class="absolute inset-0 bg-black/20 backdrop-blur-xs opacity-0 transition-opacity"></div>
+    
+    <!-- Panel container -->
+    <div id="drawerPanel" class="absolute top-0 right-0 bottom-0 w-full max-w-md bg-white/95 backdrop-blur-md border-l border-white/90 shadow-2xl p-6 flex flex-col justify-between transform translate-x-full transition-transform">
+      
+      <div>
+        <!-- Drawer Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-[#f3dde3]">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-[#1c1e1a] text-white flex items-center justify-center">
+              <i data-lucide="sliders" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-base font-extrabold text-[#1c1e1a]">Cấu hình Mô hình & Ngưỡng</h2>
+          </div>
+          <button onclick="toggleDrawer(false)" class="w-8 h-8 rounded-full hover:bg-[#fcc2d7] flex items-center justify-center text-[#8e8085] transition-all">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Form fields -->
+        <form id="formDrawerConfig" class="space-y-4 pt-5">
+          
+          <div>
+            <label class="block text-xs font-bold text-[#665b60] uppercase tracking-wider mb-1">Mô hình Tầng 2</label>
+            <select id="cfgModelChoice" class="portal-input text-xs font-semibold">
+              <option value="Logistic Regression">Logistic Regression (Chuẩn mực)</option>
+              <option value="TabPFN (Tổ hợp Nơ-ron)">TabPFN (Tổ hợp Nơ-ron)</option>
+              <option value="K-Nearest Neighbors (KNN)">K-Nearest Neighbors (KNN)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#665b60] uppercase tracking-wider mb-1">Phương pháp hiệu chỉnh xác suất</label>
+            <select id="cfgCalibMethod" class="portal-input text-xs font-semibold">
+              <option value="Platt Scaling">Platt Scaling (Logistic Sigmoid)</option>
+              <option value="Isotonic Regression">Isotonic Regression (Không tham số)</option>
+              <option value="none">Không hiệu chỉnh (Raw Probabilities)</option>
+            </select>
+          </div>
+
+          <div class="pt-2 border-t border-[#f3dde3] space-y-4">
+            <div class="text-xs font-bold text-[#1c1e1a] uppercase tracking-wider">Tinh chỉnh Ngưỡng Sư phạm & ML</div>
+
+            <!-- Ngưỡng L1 -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-semibold mb-1">
+                <span>Ngưỡng L1 (Vắng cấm thi):</span>
+                <span id="cfgL1Val" class="font-mono text-xs font-bold text-[#6b46c1]">0.20</span>
+              </div>
+              <input type="range" id="cfgL1" min="0.10" max="0.35" step="0.01" value="0.20" oninput="document.getElementById('cfgL1Val').textContent = parseFloat(this.value).toFixed(2)" class="w-full">
+              <span class="text-[10px] text-[#8e8085]">Quy định đào tạo hiện hành: Vắng ≥ 20%</span>
+            </div>
+
+            <!-- Ngưỡng S1 -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-semibold mb-1">
+                <span>Ngưỡng S1 (Vắng luật sàn):</span>
+                <span id="cfgS1Val" class="font-mono text-xs font-bold text-[#b5831f]">0.15</span>
+              </div>
+              <input type="range" id="cfgS1" min="0.05" max="0.25" step="0.01" value="0.15" oninput="document.getElementById('cfgS1Val').textContent = parseFloat(this.value).toFixed(2)" class="w-full">
+              <span class="text-[10px] text-[#8e8085]">Vắng ≥ 15%: Cố định tối thiểu Mức Trung bình</span>
+            </div>
+
+            <!-- Ngưỡng T1 -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-semibold mb-1">
+                <span>Ngưỡng T1 (Thấp &rarr; Trung bình):</span>
+                <span id="cfgT1Val" class="font-mono text-xs font-bold text-[#2b7a3e]">0.25</span>
+              </div>
+              <input type="range" id="cfgT1" min="0.10" max="0.50" step="0.01" value="0.25" oninput="document.getElementById('cfgT1Val').textContent = parseFloat(this.value).toFixed(2)" class="w-full">
+            </div>
+
+            <!-- Ngưỡng T2 -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-semibold mb-1">
+                <span>Ngưỡng T2 (Trung bình &rarr; Cao):</span>
+                <span id="cfgT2Val" class="font-mono text-xs font-bold text-[#b83834]">0.60</span>
+              </div>
+              <input type="range" id="cfgT2" min="0.40" max="0.85" step="0.01" value="0.60" oninput="document.getElementById('cfgT2Val').textContent = parseFloat(this.value).toFixed(2)" class="w-full">
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Drawer Footer CTA -->
+      <div class="pt-4 border-t border-[#f3dde3] flex items-center gap-3">
+        <button onclick="toggleDrawer(false)" class="btn-pill-white flex-1 py-2 text-xs">
+          <span>Hủy</span>
+        </button>
+        <button onclick="handleApplyConfig()" class="btn-pill-dark flex-1 py-2 text-xs">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Áp dụng cấu hình</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       TOAST NOTIFICATIONS CONTAINER (Floating Dark Capsule)
+       ============================================================================== -->
+  <div id="toastContainer"></div>
+
+  <!-- Mock Data for Standalone / Offline Resilience -->
+  <script src="mock_data.js"></script>
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+==============================================================================
+               EDUGUARD. - HỆ THỐNG CẢNH BÁO SỚM NGUY CƠ RỚT MÔN
+                             (Khoa KHMT - CS301_ML)
+==============================================================================
+
+1. CÁCH KHỞI CHẠY (1-CLICK RUN):
+------------------------------------------------------------------------------
+Chỉ cần nhấp đúp chuột vào file duy nhất:
+   👉 CHAY_UNG_DUNG.bat
+
+- Nếu máy bạn ĐÃ CÓ Python:
+  File sẽ tự động thiết lập môi trường, cài đặt thư viện cần thiết và tự động
+  mở trình duyệt web tại http://127.0.0.1:8000 (kết nối trực tiếp mô hình máy học).
+
+- Nếu máy bạn CHƯA CÓ Python:
+  File sẽ tự động mở xem giao diện web trực tiếp trên trình duyệt (đã tích hợp
+  sẵn dữ liệu 500 sinh viên, 4 kịch bản AI, biểu đồ tương tác để xem thử).
+
+
+2. TÀI KHOẢN ĐĂNG NHẬP THỬ NGHIỆM:
+------------------------------------------------------------------------------
+- Tab "Sinh viên" (Tra cứu hồ sơ cá nhân):
+  + Mã sinh viên : SV_K67_0020 (hoặc bấm nút "Điền tài khoản Demo")
+  + Mật khẩu PIN : 123456
+
+- Tab "Trợ lý AI":
+  + Chọn 4 kịch bản kiểm tra nhanh bên trái (Lê Minh Tuấn, Trần Bảo Ngọc, ...)
+  + Bấm nút "Nghe AI đọc phân tích (vi-VN)" để nghe trợ lý đọc giọng tiếng Việt.
+
+
+3. CẤU TRÚC THƯ MỤC:
+------------------------------------------------------------------------------
+- CHAY_UNG_DUNG.bat   : File khởi chạy chính.
+- HUONG_DAN_SU_DUNG.txt: Tài liệu hướng dẫn này.
+- he_thong/            : Chứa toàn bộ mã nguồn Backend, Frontend và Dữ liệu máy học.
+==============================================================================
